@@ -73,7 +73,7 @@ class Game:
 				# Trying horizontal or vertical placement first is random
 				j = random.randint(0, 1)
 				for k in range(2):
-					count = 1
+					count = 1 
 					x1 = x
 					y1 = y
 					ship.position = {}
