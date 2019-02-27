@@ -6,7 +6,7 @@ from functools import partial
 # from tkinter.ttk import Separator, Style
 
 frames = []
-BOARD_SIZE = BOARD_SIZE
+BOARD_SIZE = 8
 
 class Ship:
 	def __init__(self, name, size):
@@ -139,17 +139,12 @@ class Player:
 	def playAgain(self):
 		return messagebox.askyesno("Game Over", f"{self.name} wins!  All ships were sunk in {self.turn} turns.  Would you like to play again?")
 
-	# Checks to see if the ship was sunk, and if so, set the appropriate status message
-	# If the last ship was sunk, congratulate the winner, and ask whether the player would like to play again
-	# If we are playing again, call to reset the board, otherwise, end the game.
-	def isSunk(self, ship):
-		if ship.sunk:
-			return True
-		for k in ship.position.keys():
-			if list(k) in self.valid:
-				return False
-		ship.sunk = True
-		self.sunk += 1
+	# Display appropriate messages 
+	# If all ships were sunk, ask if the player wants to play again 
+	# Reset the game if the player wants to play again
+	# Take action to end the game if the player does not want to play again
+	# If ships still remain, inform the player that the ship was sunk.
+	def shipWasSunkMessages(self, ship):
 		print(f"{ship.name} was sunk!!")
 		if self.sunk == 5:
 			if self.playAgain():
@@ -159,7 +154,19 @@ class Player:
 				self.parent.status = 'Over'
 				root.destroy()
 		else:
-			self.status.configure(text=f"{ship.name} was sunk!", bg="red", fg="white")
+			self.status.configure(text=f"{ship.name} was sunk!", bg="white", fg="red")
+		return True
+
+	# Returns False if the ship was already sunk or if unhit sections of the ship remain 
+	# Returns True if the ship was sunk
+	def isSunk(self, ship):
+		if ship.sunk:
+			return False
+		for k in ship.position.keys():
+			if list(k) in self.valid:
+				return False
+		ship.sunk = True
+		self.sunk += 1
 		return True
 
 	def move(self, x, y, s):
@@ -170,9 +177,10 @@ class Player:
 		for ship in self.ships:
 			if ship.sunk == False and (x, y) in ship.position:
 				self.buttons[x][y].configure(image=self.parent.hit, compound="left")
-				self.status.configure(text=f"{ship.name} was hit!", bg="red", fg="white")
+				self.status.configure(text=f"{ship.name} was hit!", bg="white", fg="red")
 				foundHit = True
-				self.isSunk(ship)
+				if self.isSunk(ship):
+					self.shipWasSunkMessages(ship)
 				break
 		if not foundHit:
 			self.buttons[x][y].configure(image=self.parent.miss, compound="left")
@@ -293,7 +301,7 @@ def completeBoard(game, root):
 	frames[-1].pack_propagate(False)
 	game.computer.label = Label(frames[-1], text=f"{game.computer.name}'s Board", fg="white", bg="blue", font="Verdana 12 bold", anchor="center", justify="center")
 	game.computer.label.pack()
-	game.player.status = Label(frames[-1], text=f"You go first.", fg="white", bg="blue", font="Verdana 16 bold", anchor="center", justify="center")
+	game.player.status = Label(frames[-1], text=f"You go first.", fg="blue", bg="white", font="Verdana 16 bold", anchor="center", justify="center")
 	game.player.status.pack()	
 	frames[-1].grid(column=2, row = 0, sticky="n")
 	frames += [Frame(root, bg="blue")]
