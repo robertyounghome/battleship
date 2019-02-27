@@ -6,6 +6,7 @@ from functools import partial
 # from tkinter.ttk import Separator, Style
 
 frames = []
+BOARD_SIZE = BOARD_SIZE
 
 class Ship:
 	def __init__(self, name, size):
@@ -31,10 +32,10 @@ class Player:
 		global frames
 		self.initShips()
 		self.sunk = 0
-		self.board = [[' ' for _ in range(8)] for _ in range(8)]
+		self.board = [[' ' for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
 		self.valid = []
-		for i in range(8):
-			for j in range(8):
+		for i in range(BOARD_SIZE):
+			for j in range(BOARD_SIZE):
 				self.valid += [[i, j]]
 		self.turn = 0
 		if len(frames) > 2:
@@ -106,7 +107,7 @@ class Player:
 			print(f"{ship.name} is in {ship.position}")
 
 	def printBoard(self):
-		for i in range(8):
+		for i in range(BOARD_SIZE):
 			print(self.board[i])
 
 	# Check our list of valid remaining moves to see if the move is valid
@@ -117,17 +118,17 @@ class Player:
 
 	# Resets the GUI board for the player
 	def boardReset(self):
-		for x in range(8):
-			for y in range(8):
+		for x in range(BOARD_SIZE):
+			for y in range(BOARD_SIZE):
 				self.buttons[x][y].configure(image=game.blank, compound="left")
 		self.status.configure(text="Setup", fg="blue", bg="white")
 
 	# Creates the GUI board for the player
 	def boardInit(self):
 		self.buttons = []
-		for x in range(8):
+		for x in range(BOARD_SIZE):
 			self.buttons += [[]]
-			for y in range(8):
+			for y in range(BOARD_SIZE):
 				if self.auto:
 					self.buttons[x] += [Button(frames[-1], text="", image=game.blank, borderwidth=1, command=partial(self.parent.tkplaceships, x, y, root))]
 				else:
@@ -136,7 +137,7 @@ class Player:
 
     # Prompts user in the GUI.  Returns True if the user wants to play again, otherwise False
 	def playAgain(self):
-		return messagebox.askyesno("Game Over", f"All ships sunk in {self.turn} turns!!  Would you like to play again?")
+		return messagebox.askyesno("Game Over", f"{self.name} wins!  All ships were sunk in {self.turn} turns.  Would you like to play again?")
 
 	# Checks to see if the ship was sunk, and if so, set the appropriate status message
 	# If the last ship was sunk, congratulate the winner, and ask whether the player would like to play again
@@ -190,6 +191,14 @@ class Player:
 			return True
 		return False
 
+    # Returns False if the x,y position is already taken by another ship
+    # Otherwise, the position is open, so True is returned
+	def positionEmpty(self, x, y):
+		for ship in self.ships:
+			if (x, y) in ship.position:
+				return False
+		return True
+
     # Allows the player to place ships on their board wherever they choose
     # Uses the board GUI in order to place the ships
     # Will only allow legal placement of the ships
@@ -214,7 +223,7 @@ class Player:
 						found = True
 				holdi = i
 				break
-		if found:
+		if found and self.positionEmpty(x, y):
 			self.ships[holdi].position[(x, y)] = 1
 			self.buttons[x][y].configure(image=self.parent.ship, compound="left")
 		else:
